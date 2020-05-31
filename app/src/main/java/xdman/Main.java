@@ -21,7 +21,6 @@ public class Main {
 		Logger.log("loading...");
 		Logger.log(System.getProperty("java.version") + " " + System.getProperty("os.version"));
 		
-		
 		XDMApp.start(args);
 	}
 
