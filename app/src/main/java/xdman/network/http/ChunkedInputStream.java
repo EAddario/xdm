@@ -214,13 +214,7 @@ public class ChunkedInputStream extends InputStream {
 	 * Expects the stream to start with a chunksize in hex with optional
 	 * comments after a semicolon. The line must end with a CRLF: "a3; some
 	 * comment\r\n" Positions the stream at the start of the next line.
-	 * 
-	 * @param in
-	 *            The new input stream.
-	 * @param required
-	 *            <tt>true<tt/> if a valid chunk must be present,
-	 *                 <tt>false<tt/> otherwise.
-	 * 
+	 *
 	 * @return the chunk size as integer
 	 * 
 	 * @throws IOException when the chunk size could not be parsed
@@ -292,7 +286,7 @@ public class ChunkedInputStream extends InputStream {
 			try {
 				if (!eof) {
 					// read and discard the remainder of the message
-					byte buffer[] = new byte[BUFFER_SIZE];
+					byte[] buffer = new byte[BUFFER_SIZE];
 					while (read(buffer) >= 0) {
 					}
 				}
@@ -303,7 +297,7 @@ public class ChunkedInputStream extends InputStream {
 		}
 	}
 
-	public static final int readLine(InputStream in, StringBuffer buf)
+	public static int readLine(InputStream in, StringBuffer buf)
 			throws IOException {
 		boolean gotCR = false;
 		while (true) {
@@ -315,11 +309,7 @@ public class ChunkedInputStream extends InputStream {
 					return buf.length();
 				}
 			}
-			if (x == '\r') {
-				gotCR = true;
-			} else {
-				gotCR = false;
-			}
+			gotCR = x == '\r';
 			if (x != '\r')
 				buf.append((char) x);
 		}

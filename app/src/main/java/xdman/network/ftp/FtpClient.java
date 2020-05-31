@@ -12,13 +12,12 @@ import org.apache.commons.net.ftp.FTPReply;
 import xdman.util.Logger;
 
 public class FtpClient {
-	private String url;
+	private final String url;
 	private int statusCode;
 	private String statusMessage;
 	private long offset;
 	private FTPClient fc;
 	private String dir, file;
-	private int port;
 	private String host, path;
 	private String user, password;
 	private long length;
@@ -49,7 +48,7 @@ public class FtpClient {
 			throw new IOException(e);
 		}
 		host = ftpuri.getHost();
-		port = ftpuri.getPort();
+		int port = ftpuri.getPort();
 		path = ftpuri.getPath();
 		Logger.log("Path: " + path);
 		getPath();
@@ -90,7 +89,7 @@ public class FtpClient {
 		}
 
 		Logger.log("Listing files");
-		FTPFile files[] = fc.listFiles(dir);
+		FTPFile[] files = fc.listFiles(dir);
 		reply = fc.getReplyCode();
 		if (!FTPReply.isPositiveCompletion(reply)) {
 			statusCode = 403;
@@ -98,8 +97,7 @@ public class FtpClient {
 			fc.disconnect();
 			return;
 		}
-		for (int i = 0; i < files.length; i++) {
-			FTPFile f = files[i];
+		for (FTPFile f : files) {
 			if (f.getName().equals(file)) {
 				this.length = f.getSize();
 				Logger.log("Length retrived: " + length);

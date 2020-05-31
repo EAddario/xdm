@@ -22,7 +22,7 @@ public final class ProxyInfo {
 				this.proxy = paramString1.substring(0, i);
 				try {
 					this.port = Integer.parseInt(paramString1.substring(i + 1).trim());
-				} catch (Exception localException1) {
+				} catch (Exception ignored) {
 				}
 			} else if (!paramString1.equals("")) {
 				this.proxy = paramString1;
@@ -34,7 +34,7 @@ public final class ProxyInfo {
 				this.socksProxy = paramString2.substring(0, i);
 				try {
 					this.socksPort = Integer.parseInt(paramString2.substring(i + 1).trim());
-				} catch (Exception localException2) {
+				} catch (Exception ignored) {
 				}
 			} else if (!paramString2.equals("")) {
 				this.socksProxy = paramString2;
@@ -91,9 +91,6 @@ public final class ProxyInfo {
 		if (this.proxy != null) {
 			return false;
 		}
-		if (this.socksProxy != null) {
-			return false;
-		}
-		return true;
+		return this.socksProxy == null;
 	}
 }

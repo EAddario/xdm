@@ -4,7 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 
 public class FixedRangeInputStream extends InputStream {
-	private InputStream baseStream;
+	private final InputStream baseStream;
 	private long rem;
 
 	public FixedRangeInputStream(InputStream baseStream, long length) {
