@@ -12,9 +12,9 @@ public class YtUtil {
 		return ((itag > 4 && itag < 79) || (itag > 81 && itag < 86) || (itag > 99 && itag < 103));
 	}
 
-	static Object lockObject = new Object();
+	static final Object lockObject = new Object();
 
-	static ArrayList<DASH_INFO> videoQueue = new ArrayList<DASH_INFO>(), audioQueue = new ArrayList<DASH_INFO>();
+	static ArrayList<DASH_INFO> videoQueue = new ArrayList<>(), audioQueue = new ArrayList<>();
 
 	public static boolean addToQueue(DASH_INFO info) {
 		synchronized (lockObject) {
@@ -84,10 +84,10 @@ public class YtUtil {
 		}
 	}
 
-	private static HashMap<Integer, String> itags;
+	private static final HashMap<Integer, String> itags;
 	
 	static {
-		itags = new HashMap<Integer, String>();
+		itags = new HashMap<>();
 		itags.put(5, "240p");
 		itags.put(6, "270p");
 		itags.put(13, "Small");
@@ -152,7 +152,7 @@ public class YtUtil {
 	}
 
 	public static String getInfoFromITAG(int itag) {
-		return (String) itags.get(itag);
+		return itags.get(itag);
 	}
 
 }

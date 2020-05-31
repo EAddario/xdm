@@ -7,6 +7,7 @@ import java.net.ServerSocket;
 import java.net.Socket;
 import java.nio.channels.FileChannel;
 import java.nio.channels.FileLock;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -23,8 +24,6 @@ import xdman.util.Logger;
 
 public class BrowserMonitor implements Runnable {
 	private static BrowserMonitor _this;
-	private FileChannel fc;
-	private FileLock fileLock;
 
 	public static BrowserMonitor getInstance() {
 		if (_this == null) {
@@ -55,13 +54,13 @@ public class BrowserMonitor implements Runnable {
 	private static void appendArray(String[] arr, StringBuilder buf) {
 		boolean insertComma = false;
 		if (arr != null && arr.length > 0) {
-			for (int i = 0; i < arr.length; i++) {
+			for (String s : arr) {
 				if (insertComma) {
 					buf.append(",");
 				} else {
 					insertComma = true;
 				}
-				buf.append("\"" + arr[i] + "\"");
+				buf.append("\"" + s + "\"");
 			}
 		}
 	}
@@ -120,8 +119,8 @@ public class BrowserMonitor implements Runnable {
 				String id = item.getMetadata().getId();
 				String text = item.getFile();
 				String info = item.getInfo();
-				videoPopupItems.add(String.join("|", Base64.encode(id.getBytes("utf-8")),
-						Base64.encode(text.getBytes("utf-8")), Base64.encode(info.getBytes("utf-8"))));
+				videoPopupItems.add(String.join("|", Base64.encode(id.getBytes(StandardCharsets.UTF_8)),
+						Base64.encode(text.getBytes("utf-8")), Base64.encode(info.getBytes(StandardCharsets.UTF_8))));
 			}
 			json.append("vidList:" + String.join(",", videoPopupItems) + "\n");
 		} catch (Exception e) {
@@ -196,19 +195,20 @@ public class BrowserMonitor implements Runnable {
 			XDMApp.instanceAlreadyRunning();
 		}
 		try {
+			assert serverSock != null;
 			serverSock.close();
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 	}
 
 	private void acquireGlobalLock() {
 		try {
-			fc = FileChannel.open(Paths.get(System.getProperty("user.home"), XDMApp.GLOBAL_LOCK_FILE),
+			FileChannel fc = FileChannel.open(Paths.get(System.getProperty("user.home"), XDMApp.GLOBAL_LOCK_FILE),
 					EnumSet.of(StandardOpenOption.CREATE, StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.READ,
 							StandardOpenOption.WRITE));
 			int maxRetry = 10;
 			for (int i = 0; i < maxRetry; i++) {
-				fileLock = fc.tryLock();
+				FileLock fileLock = fc.tryLock();
 				if (fileLock != null) {
 					Logger.log("Lock acquired...");
 					return;

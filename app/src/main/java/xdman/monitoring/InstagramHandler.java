@@ -32,7 +32,7 @@ public class InstagramHandler {
 			in.close();
 			Logger.log("Parsing instagram page...");
 			if (pattern == null) {
-				pattern = Pattern.compile("\"video\\_url\"\\s*:\\s*\"(.*?)\"");
+				pattern = Pattern.compile("\"video_url\"\\s*:\\s*\"(.*?)\"");
 			}
 			Matcher matcher = pattern.matcher(buf);
 			if (matcher.find()) {

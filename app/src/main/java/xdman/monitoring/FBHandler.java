@@ -28,7 +28,7 @@ public class FBHandler {
 				if (ln == null) {
 					break;
 				}
-				buf.append(ln + "\n");
+				buf.append(ln).append("\n");
 			}
 			in.close();
 			Logger.log("Parsing facebook page...");
@@ -36,9 +36,9 @@ public class FBHandler {
 			ArrayList<String> sdUrls2 = findURL("sd_src_no_ratelimit", buf);
 			ArrayList<String> hdUrls1 = findURL("hd_src", buf);
 			ArrayList<String> hdUrls2 = findURL("hd_src_no_ratelimit", buf);
-			for (int i = 0; i < sdUrls1.size(); i++) {
+			for (String s : sdUrls1) {
 				HttpMetadata metadata = new HttpMetadata();
-				metadata.setUrl(sdUrls1.get(i));
+				metadata.setUrl(s);
 				metadata.setHeaders(data.getRequestHeaders());
 				String file = data.getFile();
 				if (StringUtils.isNullOrEmptyOrBlank(file)) {
@@ -46,9 +46,9 @@ public class FBHandler {
 				}
 				XDMApp.getInstance().addMedia(metadata, file + ".mp4", "MP4 LOW");
 			}
-			for (int i = 0; i < sdUrls2.size(); i++) {
+			for (String s : sdUrls2) {
 				HttpMetadata metadata = new HttpMetadata();
-				metadata.setUrl(sdUrls2.get(i));
+				metadata.setUrl(s);
 				metadata.setHeaders(data.getRequestHeaders());
 				String file = data.getFile();
 				if (StringUtils.isNullOrEmptyOrBlank(file)) {
@@ -56,9 +56,9 @@ public class FBHandler {
 				}
 				XDMApp.getInstance().addMedia(metadata, file + ".mp4", "MP4 MEDIUM");
 			}
-			for (int i = 0; i < hdUrls1.size(); i++) {
+			for (String s : hdUrls1) {
 				HttpMetadata metadata = new HttpMetadata();
-				metadata.setUrl(hdUrls1.get(i));
+				metadata.setUrl(s);
 				metadata.setHeaders(data.getRequestHeaders());
 				String file = data.getFile();
 				if (StringUtils.isNullOrEmptyOrBlank(file)) {
@@ -66,9 +66,9 @@ public class FBHandler {
 				}
 				XDMApp.getInstance().addMedia(metadata, file + ".mp4", "MP4 HD");
 			}
-			for (int i = 0; i < hdUrls2.size(); i++) {
+			for (String s : hdUrls2) {
 				HttpMetadata metadata = new HttpMetadata();
-				metadata.setUrl(hdUrls2.get(i));
+				metadata.setUrl(s);
 				metadata.setHeaders(data.getRequestHeaders());
 				String file = data.getFile();
 				if (StringUtils.isNullOrEmptyOrBlank(file)) {
@@ -157,7 +157,7 @@ public class FBHandler {
 	}
 
 	private static String decodeJSONEscape(String json) {
-		StringBuffer buf = new StringBuffer();
+		StringBuilder buf = new StringBuilder();
 		int pos = 0;
 		while (true) {
 			int index = json.indexOf("\\u", pos);

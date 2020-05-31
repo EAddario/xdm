@@ -42,8 +42,7 @@ public class M3U8Handler {
 				List<HlsPlaylistItem> items = playlist.getItems();
 				// ArrayList<String> urls = manifest.getMediaUrls();
 				if (items != null) {
-					for (int i = 0; i < items.size(); i++) {
-						HlsPlaylistItem item = items.get(i);
+					for (HlsPlaylistItem item : items) {
 						String url = item.getUrl();
 						HlsMetadata metadata = new HlsMetadata();
 						metadata.setUrl(url);

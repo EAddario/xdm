@@ -20,7 +20,7 @@ public class VimeoHandler {
 
 	public static boolean handle(File tempFile, ParsedHookData data) {
 		try {
-			StringBuffer buf = new StringBuffer();
+			StringBuilder buf = new StringBuilder();
 			InputStream in = new FileInputStream(tempFile);
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));
 			while (true) {
@@ -28,7 +28,7 @@ public class VimeoHandler {
 				if (ln == null) {
 					break;
 				}
-				buf.append(ln + "\n");
+				buf.append(ln).append("\n");
 			}
 			in.close();
 			String keyword = "\"progressive\"";
@@ -75,11 +75,11 @@ public class VimeoHandler {
 	private static void processString(String str, ParsedHookData data) {
 		String quality = "", type = "", url = "";
 		String[] arr = str.split(",");
-		for (int i = 0; i < arr.length; i++) {
-			int index = arr[i].indexOf(":");
+		for (String s : arr) {
+			int index = s.indexOf(":");
 			if (index > 0) {
-				String key = arr[i].substring(0, index).replace("\"", "");
-				String val = arr[i].substring(index + 1).replace("\"", "");
+				String key = s.substring(0, index).replace("\"", "");
+				String val = s.substring(index + 1).replace("\"", "");
 				if (key.equals("url")) {
 					url = val;
 					Logger.log(url);
