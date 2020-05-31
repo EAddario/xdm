@@ -27,8 +27,9 @@ import xdman.util.Logger;
 import xdman.util.XDMUtils;
 
 public class EncryptedHlsChannel extends HttpChannel {
-	private String keyUrl, mediaUrl;
-	private HlsEncryptedSouce source;
+	private final String keyUrl;
+	private final String mediaUrl;
+	private final HlsEncryptedSouce source;
 
 	public EncryptedHlsChannel(Segment chunk, String url, HeaderCollection headers, long totalLength,
 			boolean javaClientRequired, HlsEncryptedSouce source, String keyurl) {
@@ -221,7 +222,7 @@ public class EncryptedHlsChannel extends HttpChannel {
 
 			try {
 				Thread.sleep(sleepInterval);
-			} catch (Exception e) {
+			} catch (Exception ignored) {
 			}
 		}
 

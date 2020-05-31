@@ -7,7 +7,7 @@ import xdman.downloaders.SegmentDownloader;
 import xdman.downloaders.metadata.HttpMetadata;
 
 public class FtpDownloader extends SegmentDownloader {
-	private HttpMetadata metadata;
+	private final HttpMetadata metadata;
 	//private String newFileName;
 
 	public FtpDownloader(String id, String folder, HttpMetadata metadata) {

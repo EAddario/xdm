@@ -11,18 +11,18 @@ import xdman.util.Logger;
 import xdman.util.StringUtils;
 
 public class M3U8Manifest {
-	private String playlistUrl;
+	private final String playlistUrl;
 	private float duration;
-	private ArrayList<String> mediaUrls;
+	private final ArrayList<String> mediaUrls;
 	private boolean masterPlaylist;
 	private boolean encrypted;
-	private ArrayList<M3U8MediaInfo> mediaProperties;// valid only for master
+	private final ArrayList<M3U8MediaInfo> mediaProperties;// valid only for master
 														// playlist
 
 	public M3U8Manifest(String file, String playlistUrl) throws Exception {
 		this.playlistUrl = playlistUrl;
-		this.mediaUrls = new ArrayList<String>();
-		this.mediaProperties = new ArrayList<M3U8MediaInfo>();
+		this.mediaUrls = new ArrayList<>();
+		this.mediaProperties = new ArrayList<>();
 		ArrayList<String> urlList = parseManifest(file);
 		makeMediaUrls(urlList);
 	}
@@ -38,8 +38,7 @@ public class M3U8Manifest {
 	private void makeMediaUrls(ArrayList<String> list) throws Exception {
 		String base_url = "";
 		URI uri = null;
-		for (int i = 0; i < list.size(); i++) {
-			String item = list.get(i);
+		for (String item : list) {
 			String item_url = resolveURL(playlistUrl, item);
 			if (item_url == null) {
 				if (item.startsWith("/")) {
@@ -82,10 +81,8 @@ public class M3U8Manifest {
 	}
 
 	private ArrayList<String> parseManifest(String file) throws IOException {
-		ArrayList<String> urlList = new ArrayList<String>();
-		BufferedReader r = null;
-		try {
-			r = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+		ArrayList<String> urlList = new ArrayList<>();
+		try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
 			boolean expect = false;
 			while (true) {
 				String line = r.readLine();
@@ -131,12 +128,6 @@ public class M3U8Manifest {
 		} catch (Exception e) {
 			Logger.log(e);
 			throw new IOException("Unable to parse menifest");
-		} finally {
-			try {
-				if (r != null)
-					r.close();
-			} catch (Exception e) {
-			}
 		}
 
 		return urlList;
@@ -181,9 +172,9 @@ public class M3U8Manifest {
 		public static M3U8MediaInfo parse(String str) {
 			String[] arr = str.split(",");
 			M3U8MediaInfo info = new M3U8MediaInfo();
-			for (int j = 0; j < arr.length; j++) {
+			for (String s : arr) {
 				try {
-					String ss = arr[j].toUpperCase();
+					String ss = s.toUpperCase();
 					if (ss.startsWith("RESOLUTION")) {
 						if (ss.contains("=")) {
 							info.resolution = ss.split("=")[1].trim();
@@ -196,11 +187,11 @@ public class M3U8Manifest {
 							try {
 								bps = Integer.parseInt(info.bandwidth);
 								info.bandwidth = (bps / 1000) + " kbps";
-							} catch (Exception e) {
+							} catch (Exception ignored) {
 							}
 						}
 					}
-				} catch (Exception e) {
+				} catch (Exception ignored) {
 				}
 			}
 			return info;

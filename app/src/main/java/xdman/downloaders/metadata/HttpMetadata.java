@@ -151,6 +151,8 @@ public class HttpMetadata {
 				return null;
 			}
 			while (true) {
+				assert metadata != null;
+				assert metadata instanceof DashMetadata;
 				ln = br.readLine();
 				if (ln == null)
 					break;
@@ -207,7 +209,7 @@ public class HttpMetadata {
 			if (br != null) {
 				try {
 					br.close();
-				} catch (Exception ex) {
+				} catch (Exception ignored) {
 				}
 			}
 		}
@@ -264,7 +266,7 @@ public class HttpMetadata {
 			if (fw != null) {
 				try {
 					fw.close();
-				} catch (Exception ex) {
+				} catch (Exception ignored) {
 				}
 			}
 		}

@@ -23,13 +23,12 @@ public class PlaylistParser {
 		boolean isEncryptedSegment = false;
 		int mediaSequence = 0;
 		String duration = "";
-		BufferedReader r = null;
 		List<HlsPlaylistItem> items = new ArrayList<>();
 		float totalDuration = 0.0f;
 		String lastUrl = null;
 		boolean hasByteRange = false;
-		try {
-			r = new BufferedReader(new InputStreamReader(new FileInputStream(file)));
+
+		try (BufferedReader r = new BufferedReader(new InputStreamReader(new FileInputStream(file)))) {
 			if (!XDMUtils.readLineSafe(r).startsWith("#EXTM3U")) {
 				throw new IOException("Not a valid HLS manifest");
 			}
@@ -75,7 +74,7 @@ public class PlaylistParser {
 						if (!StringUtils.isNullOrEmptyOrBlank(duration)) {
 							totalDuration += Float.parseFloat(duration);
 						}
-					} catch (Exception e) {
+					} catch (Exception ignored) {
 					}
 					duration = "";
 				} else if (line.startsWith("#EXT")) {
@@ -104,7 +103,7 @@ public class PlaylistParser {
 								String sDuration = attrs[0].trim();
 								try {
 									duration = sDuration;
-								} catch (Exception e) {
+								} catch (Exception ignored) {
 								}
 							}
 						}
@@ -167,13 +166,6 @@ public class PlaylistParser {
 			return playlist;
 		} catch (Exception e) {
 			e.printStackTrace();
-		} finally {
-			if (r != null) {
-				try {
-					r.close();
-				} catch (Exception e2) {
-				}
-			}
 		}
 		return null;
 	}
@@ -192,7 +184,7 @@ public class PlaylistParser {
 		return line.substring(index + 1);
 	}
 
-	private static String getAttrValue(String attrs[], String name) {
+	private static String getAttrValue(String[] attrs, String name) {
 		if (attrs != null) {
 			for (String attr : attrs) {
 				String attrib = attr.trim();

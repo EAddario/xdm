@@ -1,27 +1,21 @@
 package xdman.downloaders.http;
 
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.nio.charset.Charset;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-
 import xdman.XDMConstants;
 import xdman.downloaders.AbstractChannel;
 import xdman.downloaders.Segment;
 import xdman.network.ProxyResolver;
-import xdman.network.http.HeaderCollection;
-import xdman.network.http.HttpClient;
-import xdman.network.http.HttpHeader;
-import xdman.network.http.JavaClientRequiredException;
-import xdman.network.http.JavaHttpClient;
-import xdman.network.http.WebProxy;
-import xdman.network.http.XDMHttpClient;
+import xdman.network.http.*;
 import xdman.util.Logger;
 import xdman.util.XDMUtils;
+
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Locale;
 
 public class HttpChannel extends AbstractChannel {
 	protected String url;
@@ -97,7 +91,7 @@ public class HttpChannel extends AbstractChannel {
 
 				if (headers != null) {
 					Iterator<HttpHeader> headerIt = headers.getAll();
-					List<String> cookies = new ArrayList<String>();
+					List<String> cookies = new ArrayList<>();
 					while (headerIt.hasNext()) {
 						HttpHeader header = headerIt.next();
 						if (header.getName().toLowerCase(Locale.ENGLISH).equals("cookie")) {
@@ -206,7 +200,7 @@ public class HttpChannel extends AbstractChannel {
 							bout.write(x);
 						}
 						byte[] buf = bout.toByteArray();
-						url = new String(buf, Charset.forName("ASCII"));
+						url = new String(buf, StandardCharsets.US_ASCII);
 						isRedirect = true;
 						throw new Exception("Youtube text redirect to: " + url);
 					}
@@ -273,7 +267,7 @@ public class HttpChannel extends AbstractChannel {
 
 			try {
 				Thread.sleep(sleepInterval);
-			} catch (Exception e) {
+			} catch (Exception ignored) {
 			}
 		}
 

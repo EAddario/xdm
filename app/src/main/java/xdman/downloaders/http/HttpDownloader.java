@@ -12,7 +12,7 @@ import xdman.util.StringUtils;
 import xdman.util.XDMUtils;
 
 public class HttpDownloader extends SegmentDownloader {
-	private HttpMetadata metadata;
+	private final HttpMetadata metadata;
 	private String newFileName;
 	private boolean isJavaClientRequired;
 

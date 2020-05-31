@@ -14,7 +14,7 @@ import xdman.util.Logger;
 import xdman.util.XDMUtils;
 
 public class FtpChannel extends AbstractChannel {
-	private String url;
+	private final String url;
 	private FtpClient hc;
 	private InputStream in;
 	private boolean redirected;
@@ -68,6 +68,7 @@ public class FtpChannel extends AbstractChannel {
 					hc.setOffset(startOff);
 				}
 
+				assert passwd != null;
 				hc.setUser(passwd.getUserName());
 				hc.setPassword(new String(passwd.getPassword()));
 
@@ -147,7 +148,7 @@ public class FtpChannel extends AbstractChannel {
 
 			try {
 				Thread.sleep(sleepInterval);
-			} catch (Exception e) {
+			} catch (Exception ignored) {
 			}
 		}
 

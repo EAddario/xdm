@@ -35,7 +35,7 @@ import xdman.util.StringUtils;
 import xdman.util.XDMUtils;
 
 public class DashDownloader extends Downloader implements SegmentListener, MediaConversionListener {
-	private DashMetadata metadata;
+	private final DashMetadata metadata;
 	private long MIN_CHUNK_SIZE = 256 * 1024;
 	private long len1, len2;
 	private boolean assembleFinished;
@@ -55,7 +55,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 		new File(folder).mkdirs();
 		this.lastDownloaded = downloaded;
 		this.prevTime = System.currentTimeMillis();
-		chunks = new ArrayList<Segment>();
+		chunks = new ArrayList<>();
 		try {
 			Segment c1 = new SegmentImpl(this, folder);
 			c1.setTag("T1");
@@ -320,7 +320,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 					downloadSpeed += s.getTransferRate();
 				}
 				this.downloaded = downloaded2;
-				this.downloaded = downloaded2;
+
 				if (length > 0) {
 					progress = (int) ((downloaded * 100) / length);
 					long diff = downloaded - lastDownloaded;
@@ -357,9 +357,9 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 		try {
 			if (stopFlag)
 				return;
-			byte buf[] = new byte[8192 * 8];
+			byte[] buf = new byte[8192 * 8];
 			Logger.log("assembling... " + stopFlag);
-			Collections.sort(list, new SegmentComparator());
+			list.sort(new SegmentComparator());
 			// list.sort(new SegmentComparator());
 			out = new FileOutputStream(file);
 			for (int i = 0; i < list.size(); i++) {
@@ -414,13 +414,13 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 			if (in != null) {
 				try {
 					in.close();
-				} catch (Exception e2) {
+				} catch (Exception ignored) {
 				}
 			}
 			if (out != null) {
 				try {
 					out.close();
-				} catch (Exception e2) {
+				} catch (Exception ignored) {
 				}
 			}
 		}
@@ -440,8 +440,8 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 	public void stop() {
 		stopFlag = true;
 		saveState();
-		for (int i = 0; i < chunks.size(); i++) {
-			chunks.get(i).stop();
+		for (Segment chunk : chunks) {
+			chunk.stop();
 		}
 		if (this.ffmpeg != null) {
 			this.ffmpeg.stop();
@@ -470,8 +470,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 			}
 
 			Segment c1 = null;
-			for (int i = 0; i < chunks.size(); i++) {
-				Segment c = chunks.get(i);
+			for (Segment c : chunks) {
 				if (c.isFinished() || c.isActive())
 					continue;
 				if (c.getTag().equals("T1")) {
@@ -481,8 +480,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 			}
 
 			Segment c2 = null;
-			for (int i = 0; i < chunks.size(); i++) {
-				Segment c = chunks.get(i);
+			for (Segment c : chunks) {
 				if (c.isFinished() || c.isActive())
 					continue;
 				if (c.getTag().equals("T2")) {
@@ -516,7 +514,6 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 			Logger.log(e);
 			this.errorCode = XDMConstants.RESUME_FAILED;
 			listener.downloadFailed(this.id);
-			return;
 		}
 	}
 
@@ -549,8 +546,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 		sb.append(this.len1 + "\n");
 		sb.append(this.len2 + "\n");
 		sb.append(chunks.size() + "\n");
-		for (int i = 0; i < chunks.size(); i++) {
-			Segment seg = chunks.get(i);
+		for (Segment seg : chunks) {
 			sb.append(seg.getId() + "\n");
 			sb.append(seg.getLength() + "\n");
 			sb.append(seg.getStartOffset() + "\n");
@@ -575,7 +571,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 
 	private boolean restoreState() {
 		BufferedReader br = null;
-		chunks = new ArrayList<Segment>();
+		chunks = new ArrayList<>();
 		File file = new File(folder, "state.txt");
 		if (!file.exists()) {
 			file = getBackupFile(folder);
@@ -611,7 +607,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 			if (br != null) {
 				try {
 					br.close();
-				} catch (IOException e) {
+				} catch (IOException ignored) {
 				}
 			}
 		}
@@ -619,26 +615,22 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 	}
 
 	private void assembleAsync() {
-		new Thread(new Runnable() {
-
-			@Override
-			public void run() {
-				finished = true;
-				try {
-					assemble();
-					if (!assembleFinished) {
-						throw new IOException("Assemble not finished successfully");
-					}
-					Logger.log("********Download finished*********");
-					updateStatus();
-					cleanup();
-					listener.downloadFinished(id);
-				} catch (Exception e) {
-					if (!stopFlag) {
-						Logger.log(e);
-						errorCode = XDMConstants.ERR_ASM_FAILED;
-						listener.downloadFailed(id);
-					}
+		new Thread(() -> {
+			finished = true;
+			try {
+				assemble();
+				if (!assembleFinished) {
+					throw new IOException("Assemble not finished successfully");
+				}
+				Logger.log("********Download finished*********");
+				updateStatus();
+				cleanup();
+				listener.downloadFinished(id);
+			} catch (Exception e) {
+				if (!stopFlag) {
+					Logger.log(e);
+					errorCode = XDMConstants.ERR_ASM_FAILED;
+					listener.downloadFailed(id);
 				}
 			}
 		}).start();
@@ -714,8 +706,7 @@ public class DashDownloader extends Downloader implements SegmentListener, Media
 		if (stopFlag)
 			return null;
 		long offset = chunk.getStartOffset() + chunk.getLength();
-		for (int i = 0; i < chunks.size(); i++) {
-			Segment c = chunks.get(i);
+		for (Segment c : chunks) {
 			if (c.getDownloaded() == 0) {
 				if (!c.isFinished()) {
 					if (c.getStartOffset() == offset && chunk.getTag().equals(c.getTag())) {
