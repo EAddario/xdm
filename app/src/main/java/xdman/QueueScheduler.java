@@ -48,8 +48,7 @@ public class QueueScheduler implements Runnable {
 					}
 
 					ArrayList<DownloadQueue> queues = QueueManager.getInstance().getQueueList();
-					for (int i = 0; i < queues.size(); i++) {
-						DownloadQueue queue = queues.get(i);
+					for (DownloadQueue queue : queues) {
 						if (queue.isRunning() || queue.getStartTime() == -1) {
 							continue;
 						}
@@ -89,8 +88,7 @@ public class QueueScheduler implements Runnable {
 						queue.start();
 					}
 
-					for (int i = 0; i < queues.size(); i++) {
-						DownloadQueue queue = queues.get(i);
+					for (DownloadQueue queue : queues) {
 						if (!queue.isRunning()) {
 							continue;
 						}
