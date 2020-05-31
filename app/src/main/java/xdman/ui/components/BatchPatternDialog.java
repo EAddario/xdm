@@ -79,9 +79,9 @@ public class BatchPatternDialog extends JFrame implements ActionListener, Docume
 			Logger.log(e);
 		}
 
-		spFromModelNum = new SpinnerNumberModel(Integer.valueOf(0), Integer.valueOf(0), Integer.valueOf(9999),
+		spFromModelNum = new SpinnerNumberModel(Integer.valueOf(1), Integer.valueOf(0), Integer.valueOf(9999),
 				Integer.valueOf(1));
-		spToModelNum = new SpinnerNumberModel(Integer.valueOf(100), Integer.valueOf(0), Integer.valueOf(9999),
+		spToModelNum = new SpinnerNumberModel(Integer.valueOf(9), Integer.valueOf(0), Integer.valueOf(9999),
 				Integer.valueOf(1));
 
 		String chars[] = new String[52];
