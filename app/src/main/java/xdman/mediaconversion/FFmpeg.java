@@ -15,11 +15,11 @@ import xdman.util.XDMUtils;
 
 public class FFmpeg {
 	public final static int FF_NOT_FOUND = 10, FF_LAUNCH_ERROR = 20, FF_CONVERSION_FAILED = 30, FF_SUCCESS = 0;
-	private MediaFormat outformat;
-	private MediaConversionListener listener;
-	private boolean copy;
-	private List<String> inputFiles;
-	private String outputFile;
+	private final MediaFormat outformat;
+	private final MediaConversionListener listener;
+	private final boolean copy;
+	private final List<String> inputFiles;
+	private final String outputFile;
 	private boolean hls;
 	private long totalDuration = 0;
 	private Process proc;
@@ -67,9 +67,9 @@ public class FFmpeg {
 				args.add("0");
 			}
 
-			for (int i = 0; i < inputFiles.size(); i++) {
+			for (String inputFile : inputFiles) {
 				args.add("-i");
-				args.add(inputFiles.get(i));
+				args.add(inputFile);
 			}
 
 			if (copy) {
@@ -268,7 +268,7 @@ public class FFmpeg {
 			if (proc.isAlive()) {
 				proc.destroy();
 			}
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 		}
 	}
 

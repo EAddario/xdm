@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,7 +19,7 @@ public class FormatLoader {
 			if (inStream == null) {
 				inStream = new FileInputStream("formats/format_db.txt");
 			}
-			InputStreamReader r = new InputStreamReader(inStream, Charset.forName("utf-8"));
+			InputStreamReader r = new InputStreamReader(inStream, StandardCharsets.UTF_8);
 
 			BufferedReader br = new BufferedReader(r);
 
@@ -47,7 +48,7 @@ public class FormatLoader {
 					}
 				}
 			}
-		} catch (Exception e) {
+		} catch (Exception ignored) {
 
 		}
 		return list;
@@ -58,13 +59,13 @@ public class FormatLoader {
 		List<String> list = format.getVideoCodecs();
 		if (list.size() > 0) {
 			System.out.print("\t\tVideo Codec:");
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i).length() > 1) {
-					if (list.get(i).equals(format.getDefautVideoCodec())) {
+			for (String s : list) {
+				if (s.length() > 1) {
+					if (s.equals(format.getDefautVideoCodec())) {
 						System.out.print("*");
 					}
 
-					System.out.print(list.get(i) + " ");
+					System.out.print(s + " ");
 				}
 			}
 			System.out.println("\n");
@@ -73,13 +74,13 @@ public class FormatLoader {
 		list = format.getResolutions();
 		if (list.size() > 0) {
 			System.out.print("\t\tResolution:");
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i).length() > 1) {
-					if (list.get(i).equals(format.getDefaultResolution())) {
+			for (String s : list) {
+				if (s.length() > 1) {
+					if (s.equals(format.getDefaultResolution())) {
 						System.out.print("*");
 					}
 
-					System.out.print(list.get(i) + " ");
+					System.out.print(s + " ");
 				}
 			}
 			System.out.println("\n");
@@ -88,12 +89,12 @@ public class FormatLoader {
 		list = format.getAudioChannel();
 		if (list.size() > 0) {
 			System.out.print("\t\tChannel:");
-			for (int i = 0; i < list.size(); i++) {
-				if (list.get(i).equals(format.getDefaultAudioChannel())) {
+			for (String s : list) {
+				if (s.equals(format.getDefaultAudioChannel())) {
 					System.out.print("*");
 				}
 
-				System.out.print(list.get(i) + " ");
+				System.out.print(s + " ");
 			}
 			System.out.println("\n");
 		}
