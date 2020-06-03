@@ -9,6 +9,7 @@ import java.io.FileOutputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.net.PasswordAuthentication;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
@@ -437,11 +438,11 @@ public class XDMApp implements DownloadListener, DownloadWindowListener, Compara
 					}
 					folderPath = null;
 				} else {
-					var path = Paths.get(file);
+					Path path = Paths.get(file);
 
 					fileName = path.getFileName().toString();
 
-					var parentPath = path.getParent();
+					Path parentPath = path.getParent();
 					if (parentPath != null && parentPath.isAbsolute()) {
 						folderPath = parentPath.toString();
 					} else {
@@ -449,7 +450,7 @@ public class XDMApp implements DownloadListener, DownloadWindowListener, Compara
 						if (Config.getInstance().isForceSingleFolder()) {
 							downloadFolderPath = Config.getInstance().getDownloadFolder();
 						} else {
-							var category = XDMUtils.findCategory(file);
+							int category = XDMUtils.findCategory(file);
 							downloadFolderPath = XDMApp.getInstance().getFolder(category);
 						}
 

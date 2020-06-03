@@ -191,7 +191,7 @@ public class MonitoringSession implements Runnable {
 			}
 
 			if (url != null) {
-				var metadata = new HttpMetadata();
+				HttpMetadata metadata = new HttpMetadata();
 				metadata.setUrl(url);
 
 				String file;
