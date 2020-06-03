@@ -27,13 +27,13 @@ public class FFmpegStream extends InputStream implements Runnable {
 	public void close() throws IOException {
 		try {
 			in.close();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 		try {
 			System.out.println("closing");
 			proc.destroyForcibly();
 			t.interrupt();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 	}
 
@@ -93,7 +93,7 @@ public class FFmpegStream extends InputStream implements Runnable {
 			if (read - last < 1) {
 				try {
 					in.close();
-				} catch (Exception ignored) {
+				} catch (Exception e) {
 				}
 				System.out.println("closing hanged ffmpeg");
 				proc.destroyForcibly();

@@ -32,12 +32,13 @@ public class F4MManifest {
 	private int segStart, fragStart;
 	private int fragsPerSeg;
 	private F4MMedia selectedMedia;
+	private int segNum, fragNum;
 	private String fragUrl, baseUrl;
 	private int discontinuity;
+	private String query;
 	private String pv;
 
-	private final String url;
-	private final String file;
+	private String url, file;
 
 	public F4MManifest(String url, String file) {
 		this.url = url;
@@ -45,14 +46,14 @@ public class F4MManifest {
 	}
 
 	public ArrayList<String> getMediaUrls() throws Exception {
-		ArrayList<String> urlList = new ArrayList<>();
-		fragTable = new ArrayList<>();
-		segTable = new ArrayList<>();
+		ArrayList<String> urlList = new ArrayList<String>();
+		fragTable = new ArrayList<Fragment>();
+		segTable = new ArrayList<Segment>();
 
-		String query = getQuery(url);
+		query = getQuery(url);
 		parseDoc(loadDoc(file), url);
-		int segNum = segStart;
-		int fragNum = fragStart;
+		segNum = segStart;
+		fragNum = fragStart;
 		if (start > 0) {
 			segNum = getSegmentFromFragment(start);
 			fragNum = start - 1;
@@ -89,10 +90,10 @@ public class F4MManifest {
 				discontinuity = fragTable.get(fragIndex).discontinuityIndicator;
 			else {
 				// search closest
-				for (Fragment fragment : fragTable) {
-					if (fragment.firstFragment < fragNum)
+				for (int i = 0; i < fragTable.size(); i++) {
+					if (fragTable.get(i).firstFragment < fragNum)
 						continue;
-					discontinuity = fragment.discontinuityIndicator;
+					discontinuity = fragTable.get(i).discontinuityIndicator;
 					break;
 				}
 			}
@@ -150,12 +151,12 @@ public class F4MManifest {
 				String[] arr = path.split("/");
 				for (int i = 0; i < arr.length - 1; i++) {
 					if (arr[i].length() > 0) {
-						sb.append("/").append(arr[i]);
+						sb.append("/" + arr[i]);
 					}
 				}
 				baseUrl = sb.toString();
 				System.out.println("*** URL: " + baseUrl);
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 			}
 		}
 
@@ -246,7 +247,7 @@ public class F4MManifest {
 				return null;
 			}
 
-			ArrayList<Long> bitRates = new ArrayList<>();
+			ArrayList<Long> bitRates = new ArrayList<Long>();
 
 			for (int i = 0; i < mediaNodeList.getLength(); i++) {
 				Node mediaNode = mediaNodeList.item(i);
@@ -263,24 +264,34 @@ public class F4MManifest {
 			}
 
 			return bitRateArr;
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 		return null;
 	}
 
 	private Document loadDoc(String fileName) {
-		try (FileReader r = new FileReader(fileName)) {
+		FileReader r = null;
+		try {
+			r = new FileReader(fileName);
 			DocumentBuilderFactory domFactory = DocumentBuilderFactory.newInstance();
 			domFactory.setNamespaceAware(true);
 			DocumentBuilder builder = domFactory.newDocumentBuilder();
-			return builder.parse(new InputSource(r));
+			Document doc = builder.parse(new InputSource(r));
+			return doc;
 		} catch (Exception e) {
 			Logger.log(e);
+		} finally {
+			if (r != null) {
+				try {
+					r.close();
+				} catch (Exception ee) {
+				}
+			}
 		}
 		return null;
 	}
 
-	private static void initXPath() {
+	private static final void initXPath() {
 		xpath = XPathFactory.newInstance().newXPath();
 		xpath.setNamespaceContext(new NamespaceContext() {
 
@@ -441,7 +452,8 @@ public class F4MManifest {
 		boolean invalidFragCount = false;
 		Segment prev = segTable.get(0);
 		fragCount = prev.fragmentsPerSegment;
-		for (Segment current : segTable) {
+		for (int i = 0; i < segTable.size(); i++) {
+			Segment current = segTable.get(i);
 			fragCount += (current.firstSegment - prev.firstSegment - 1) * prev.fragmentsPerSegment;
 			fragCount += current.fragmentsPerSegment;
 			prev = current;
@@ -605,8 +617,9 @@ public class F4MManifest {
 
 	private static long readInt64(byte[] data, int pos) {
 		long iValLo = readInt32(data, pos + 4);
-		long iValHi = readInt32(data, pos);
-		return iValLo + (iValHi * 4294967296L);
+		long iValHi = readInt32(data, pos + 0);
+		long iVal = iValLo + (iValHi * 4294967296L);
+		return iVal;
 	}
 
 	private int findFragmentInTable(int needle) {
@@ -630,7 +643,7 @@ public class F4MManifest {
 		return fragUrl + "Seg" + segNum + "-Frag" + fragNum;
 	}
 
-	static class Segment {
+	class Segment {
 		private int firstSegment;
 		private int fragmentsPerSegment;
 
@@ -651,7 +664,7 @@ public class F4MManifest {
 		}
 	}
 
-	static class Fragment {
+	class Fragment {
 		private int firstFragment;
 		private long firstFragmentTimestamp;
 		private int fragmentDuration;
@@ -690,7 +703,7 @@ public class F4MManifest {
 		}
 	}
 
-	static class BoxInfo {
+	class BoxInfo {
 		private String boxType;
 		private long boxSize;
 
@@ -711,7 +724,7 @@ public class F4MManifest {
 		}
 	}
 
-	static class BufferPointer {
+	class BufferPointer {
 		private byte[] buf;
 		private int pos;
 

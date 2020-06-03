@@ -33,13 +33,14 @@ public class HlsPlaylist {
 
 	@Override
 	public String toString() {
-		StringBuilder s = new StringBuilder();
+		String s = "";
 		if (items != null) {
 			for (HlsPlaylistItem item : items) {
-				s.append(item).append("\n");
+				s += item;
+				s += "\n";
 			}
 		}
-		return s.toString();
+		return s;
 	}
 
 	public float getDuration() {

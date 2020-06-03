@@ -1,22 +1,29 @@
 package xdman;
 
-import xdman.ui.res.StringResource;
-import xdman.util.Logger;
-import xdman.util.XDMUtils;
-
-import java.io.*;
-import java.nio.charset.StandardCharsets;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+import java.nio.charset.Charset;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.UUID;
 
+import xdman.ui.res.StringResource;
+import xdman.util.Logger;
+import xdman.util.XDMUtils;
+
 public class QueueManager {
 	private static QueueManager _this;
-	private final ArrayList<DownloadQueue> queueList;
+	private ArrayList<DownloadQueue> queueList;
 
 	private QueueManager() {
-		queueList = new ArrayList<>();
+		queueList = new ArrayList<DownloadQueue>();
 		loadQueues();
 	}
 
@@ -33,7 +40,8 @@ public class QueueManager {
 		if (queueId.length() < 1) {
 			return queueList.get(0);
 		}
-		for (DownloadQueue q : queueList) {
+		for (int i = 0; i < queueList.size(); i++) {
+			DownloadQueue q = queueList.get(i);
 			if (q.getQueueId().equals(queueId)) {
 				return q;
 			}
@@ -61,7 +69,7 @@ public class QueueManager {
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 
 		try (BufferedReader reader = new BufferedReader(
-				new InputStreamReader(new FileInputStream(file), StandardCharsets.UTF_8))) {
+				new InputStreamReader(new FileInputStream(file), Charset.forName("UTF-8")))) {
 
 			String str = reader.readLine();
 			int count = Integer.parseInt((str == null ? "0" : str).trim());
@@ -121,15 +129,16 @@ public class QueueManager {
 		String newLine = System.getProperty("line.separator");
 		SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd");
 		try {
-			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), StandardCharsets.UTF_8));
+			writer = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), Charset.forName("UTF-8")));
 			writer.write(count + newLine);
-			for (DownloadQueue queue : queueList) {
+			for (int i = 0; i < count; i++) {
+				DownloadQueue queue = queueList.get(i);
 				writer.write(queue.getQueueId() + newLine);
 				writer.write(queue.getName() + newLine);
 				ArrayList<String> queuedItems = queue.getQueuedItems();
 				writer.write(queuedItems.size() + newLine);
-				for (String queuedItem : queuedItems) {
-					writer.write(queuedItem + newLine);
+				for (int j = 0; j < queuedItems.size(); j++) {
+					writer.write(queuedItems.get(j) + newLine);
 				}
 				if (queue.getStartTime() != -1) {
 					writer.write("1" + newLine);
@@ -223,8 +232,9 @@ public class QueueManager {
 				ent.setQueueId("");
 			}
 		}
-		for (DownloadQueue q : queueList) {
-			ArrayList<String> corruptIds = new ArrayList<>();
+		for (int i = 0; i < queueList.size(); i++) {
+			DownloadQueue q = queueList.get(i);
+			ArrayList<String> corruptIds = new ArrayList<String>();
 			for (int k = 0; k < q.getQueuedItems().size(); k++) {
 				String id = q.getQueuedItems().get(k);
 				if (app.getEntry(id) == null) {

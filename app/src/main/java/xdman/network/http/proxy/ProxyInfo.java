@@ -30,7 +30,7 @@ public final class ProxyInfo
         {
           this.port = Integer.parseInt(paramString1.substring(i + 1).trim());
         }
-        catch (Exception ignored) {}
+        catch (Exception localException1) {}
       }
       else if (!paramString1.equals(""))
       {
@@ -47,7 +47,7 @@ public final class ProxyInfo
         {
           this.socksPort = Integer.parseInt(paramString2.substring(i + 1).trim());
         }
-        catch (Exception ignored) {}
+        catch (Exception localException2) {}
       }
       else if (!paramString2.equals(""))
       {

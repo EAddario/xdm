@@ -63,7 +63,7 @@ public class ChunkLoader {
 				chunk.tag = tag;
 				list.add(chunk);
 			}
-			list.sort(new ChunkComparator());
+			Collections.sort(list, new ChunkComparator());
 			return list;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -117,7 +117,7 @@ public class ChunkLoader {
 				chunk.startOff = off;
 				list.add(chunk);
 			}
-			list.sort(new ChunkComparator());
+			Collections.sort(list, new ChunkComparator());
 			return list;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -166,7 +166,7 @@ public class ChunkLoader {
 				chunk.startOff = off;
 				list.add(chunk);
 			}
-			list.sort(new ChunkComparator());
+			Collections.sort(list, new ChunkComparator());
 			return list;
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -187,6 +187,12 @@ class ChunkComparator implements Comparator<Chunk> {
 
 	@Override
 	public int compare(Chunk c1, Chunk c2) {
-		return Long.compare(c1.startOff, c2.startOff);
+		if (c1.startOff > c2.startOff) {
+			return 1;
+		} else if (c1.startOff < c2.startOff) {
+			return -1;
+		} else {
+			return 0;
+		}
 	}
 }

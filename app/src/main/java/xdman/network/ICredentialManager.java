@@ -1,15 +1,15 @@
 package xdman.network;
 
 public interface ICredentialManager {
-	boolean requestProxyCredential();
+	public boolean requestProxyCredential();
 
-	String getProxyUser();
+	public String getProxyUser();
 
-	String getProxyPass();
+	public String getProxyPass();
 
-	boolean requestCredential();
+	public boolean requestCredential();
 
-	String getUser();
+	public String getUser();
 
-	String getPass();
+	public String getPass();
 }

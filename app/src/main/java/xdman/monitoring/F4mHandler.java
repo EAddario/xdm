@@ -16,7 +16,7 @@ import xdman.util.XDMUtils;
 public class F4mHandler {
 	public static boolean handle(File f4mfile, ParsedHookData data) {
 		try {
-			StringBuilder buf = new StringBuilder();
+			StringBuffer buf = new StringBuffer();
 			InputStream in = new FileInputStream(f4mfile);
 			BufferedReader r = new BufferedReader(new InputStreamReader(in));
 			while (true) {
@@ -24,7 +24,7 @@ public class F4mHandler {
 				if (ln == null) {
 					break;
 				}
-				buf.append(ln).append("\n");
+				buf.append(ln + "\n");
 			}
 			in.close();
 			Logger.log("HDS manifest validating...");
@@ -49,16 +49,16 @@ public class F4mHandler {
 			F4MManifest manifest = new F4MManifest(data.getUrl(), f4mfile.getAbsolutePath());
 			long[] bitRates = manifest.getBitRates();
 			Logger.log("Bitrates: " + bitRates.length);
-			for (long bitRate : bitRates) {
+			for (int i = 0; i < bitRates.length; i++) {
 				HdsMetadata metadata = new HdsMetadata();
 				metadata.setUrl(data.getUrl());
-				metadata.setBitRate((int) bitRate);
+				metadata.setBitRate((int) bitRates[i]);
 				metadata.setHeaders(data.getRequestHeaders());
 				String file = data.getFile();
 				if (StringUtils.isNullOrEmptyOrBlank(file)) {
 					file = XDMUtils.getFileName(data.getUrl());
 				}
-				XDMApp.getInstance().addMedia(metadata, file + ".flv", "FLV " + bitRate + " bps");
+				XDMApp.getInstance().addMedia(metadata, file + ".flv", "FLV " + bitRates[i] + " bps");
 			}
 			Logger.log("Manifest valid");
 			return true;

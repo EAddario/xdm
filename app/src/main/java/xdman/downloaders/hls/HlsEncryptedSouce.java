@@ -1,11 +1,11 @@
 package xdman.downloaders.hls;
 
 public interface HlsEncryptedSouce {
-	boolean hasKey(String keyUrl);
+	public boolean hasKey(String keyUrl);
 
-	void setKey(String keyUrl, byte[] data);
+	public void setKey(String keyUrl, byte[] data);
 
-	String getIV(String url);
+	public String getIV(String url);
 
-	byte[] getKey(String keyUrl);
+	public byte[] getKey(String keyUrl);
 }

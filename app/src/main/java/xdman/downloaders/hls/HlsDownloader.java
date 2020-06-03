@@ -34,8 +34,8 @@ import xdman.util.StringUtils;
 import xdman.util.XDMUtils;
 
 public class HlsDownloader extends Downloader implements SegmentListener, MediaConversionListener, HlsEncryptedSouce {
-	private final HlsMetadata metadata;
-	private final ArrayList<HlsPlaylistItem> items;
+	private HlsMetadata metadata;
+	private ArrayList<HlsPlaylistItem> items;
 	private Segment manifestSegment;
 	private long totalAssembled;
 	private String newFileName;
@@ -43,6 +43,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 	private FFmpeg ffmpeg;
 	private int lastProgress;
 	private float totalDuration;
+	private HlsPlaylist playlist;
 
 	private Map<String, byte[]> keyMap;
 
@@ -52,8 +53,8 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 		this.length = -1;
 		this.metadata = metadata;
 		this.MAX_COUNT = Config.getInstance().getMaxSegments();
-		items = new ArrayList<>();
-		chunks = new ArrayList<>();
+		items = new ArrayList<HlsPlaylistItem>();
+		chunks = new ArrayList<Segment>();
 		this.eta = "---";
 	}
 
@@ -195,10 +196,10 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 
 	private boolean initOrUpdateSegments() {
 		try {
-			HlsPlaylist playlist = PlaylistParser.parse(new File(folder, manifestSegment.getId()).getAbsolutePath(),
+			this.playlist = PlaylistParser.parse(new File(folder, manifestSegment.getId()).getAbsolutePath(),
 					metadata.getUrl());
 
-			if (playlist == null) {
+			if (this.playlist == null) {
 				Logger.log("Manifest either invalid or have unsupported DRM");
 				return false;
 			}
@@ -242,9 +243,9 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 			System.out.println("Chunk size: " + chunks.size());
 			if (chunks.size() < 1) {
 				System.out.println("Creating chunk");
-				for (HlsPlaylistItem item : items) {
+				for (int i = 0; i < items.size(); i++) {
 					if (newExtension == null && outputFormat == 0) {
-						newExtension = findExtension(item.getUrl());
+						newExtension = findExtension(items.get(i).getUrl());
 						if (newExtension != null) {
 							Logger.log("HLS: found new extension: " + newExtension);
 
@@ -252,7 +253,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 
 						} else {
 							newExtension = ".ts";// just to skip the whole file
-							// ext extraction
+													// ext extraction
 						}
 					}
 
@@ -305,7 +306,8 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 				int processedSegments = 0;
 				int partPrg = 0;
 				downloadSpeed = 0;
-				for (Segment s : chunks) {
+				for (int i = 0; i < chunks.size(); i++) {
+					Segment s = chunks.get(i);
 					downloaded2 += s.getDownloaded();
 					downloadSpeed += s.getTransferRate();
 					if (s.isFinished()) {
@@ -359,8 +361,8 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 	public void stop() {
 		stopFlag = true;
 		saveState();
-		for (Segment chunk : chunks) {
-			chunk.stop();
+		for (int i = 0; i < chunks.size(); i++) {
+			chunks.get(i).stop();
 		}
 		if (this.ffmpeg != null) {
 			this.ffmpeg.stop();
@@ -394,6 +396,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 			Logger.log(e);
 			this.errorCode = XDMConstants.RESUME_FAILED;
 			listener.downloadFailed(this.id);
+			return;
 		}
 	}
 
@@ -420,19 +423,20 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 	private void saveState() {
 		if (chunks.size() < 1)
 			return;
-		StringBuilder sb = new StringBuilder();
+		StringBuffer sb = new StringBuffer();
 		sb.append(this.length + "\n");
 		sb.append(downloaded + "\n");
 		sb.append(((long) this.totalDuration) + "\n");
 		sb.append(items.size() + "\n");
 		System.out.println("url saved of size: " + items.size());
-		for (HlsPlaylistItem hlsPlaylistItem : items) {
-			String url = hlsPlaylistItem.getUrl();
+		for (int i = 0; i < items.size(); i++) {
+			String url = items.get(i).getUrl();
 			System.out.println("Saveing url: " + url);
 			sb.append(url + "\n");
 		}
 		sb.append(chunks.size() + "\n");
-		for (Segment seg : chunks) {
+		for (int i = 0; i < chunks.size(); i++) {
+			Segment seg = chunks.get(i);
 			sb.append(seg.getId() + "\n");
 			if (seg.isFinished()) {
 				sb.append(seg.getLength() + "\n");
@@ -486,7 +490,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 
 	private boolean restoreState() {
 		BufferedReader br = null;
-		chunks = new ArrayList<>();
+		chunks = new ArrayList<Segment>();
 		File file = new File(folder, "state.txt");
 		if (!file.exists()) {
 			file = getBackupFile(folder);
@@ -556,7 +560,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 			if (br != null) {
 				try {
 					br.close();
-				} catch (IOException ignored) {
+				} catch (IOException e) {
 				}
 			}
 		}
@@ -564,22 +568,26 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 	}
 
 	private void assembleAsync() {
-		new Thread(() -> {
-			finished = true;
-			try {
-				assemble();
-				if (!assembleFinished) {
-					throw new IOException("Assemble not finished successfully");
-				}
-				Logger.log("********Download finished*********");
-				updateStatus();
-				cleanup();
-				listener.downloadFinished(id);
-			} catch (Exception e) {
-				if (!stopFlag) {
-					Logger.log(e);
-					errorCode = XDMConstants.ERR_ASM_FAILED;
-					listener.downloadFailed(id);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				finished = true;
+				try {
+					assemble();
+					if (!assembleFinished) {
+						throw new IOException("Assemble not finished successfully");
+					}
+					Logger.log("********Download finished*********");
+					updateStatus();
+					cleanup();
+					listener.downloadFinished(id);
+				} catch (Exception e) {
+					if (!stopFlag) {
+						Logger.log(e);
+						errorCode = XDMConstants.ERR_ASM_FAILED;
+						listener.downloadFailed(id);
+					}
 				}
 			}
 		}).start();
@@ -622,7 +630,7 @@ public class HlsDownloader extends Downloader implements SegmentListener, MediaC
 			try (OutputStream hlsTextStream = new FileOutputStream(hlsFile)) {
 				hlsTextStream.write(sb.toString().getBytes());
 				hlsTextStream.close();
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 			}
 			this.converting = true;
 			List<String> inputFiles = new ArrayList<String>();

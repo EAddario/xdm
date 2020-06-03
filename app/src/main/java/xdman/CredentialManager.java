@@ -19,8 +19,8 @@ import xdman.util.Logger;
 import xdman.util.StringUtils;
 
 public class CredentialManager {
-	private final Map<String, PasswordAuthentication> savedCredentials;
-	private final Map<String, PasswordAuthentication> cachedCredentials;
+	private Map<String, PasswordAuthentication> savedCredentials;
+	private Map<String, PasswordAuthentication> cachedCredentials;
 
 	private static CredentialManager _this;
 
@@ -117,11 +117,13 @@ public class CredentialManager {
 
 	public void save() {
 		StringBuilder buf = new StringBuilder();
-		for (String key : savedCredentials.keySet()) {
+		Iterator<String> savedKeyIterator = savedCredentials.keySet().iterator();
+		while (savedKeyIterator.hasNext()) {
+			String key = savedKeyIterator.next();
 			PasswordAuthentication pauth = savedCredentials.get(key);
 			String str = key + "\n" + pauth.getUserName() + "\n" + new String(pauth.getPassword());
 			String str64 = Base64.encode(str.getBytes());
-			buf.append(str64).append("\n");
+			buf.append(str64 + "\n");
 		}
 		OutputStream out = null;
 		try {
@@ -135,7 +137,7 @@ public class CredentialManager {
 				if (out != null) {
 					out.close();
 				}
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 
 			}
 		}

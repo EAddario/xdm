@@ -26,9 +26,9 @@ public class PreviewStream extends InputStream {
 	public int read(byte[] buf, int off, int len) throws IOException {
 		if (chunks == null) {
 			chunks = ChunkLoader.load(id, type);
-			assert chunks != null;
 			if (chunks.size() > 0) {
-				for (Chunk c : chunks) {
+				for (int i = 0; i < chunks.size(); i++) {
+					Chunk c = chunks.get(i);
 					if (tag != null && tag.equals(c.tag)) {
 						currentChunk = c;
 						currentId = c.id;
@@ -59,7 +59,6 @@ public class PreviewStream extends InputStream {
 			}
 			chunks = ChunkLoader.load(id, type);
 			Chunk c = findCurrentChunk();
-			assert c != null;
 			if (read >= c.length) {
 				System.out.println("Chunk finished, trying next chunk");
 				c = findNext();
@@ -103,7 +102,6 @@ public class PreviewStream extends InputStream {
 		int index = chunks.indexOf(c);
 		for (int i = index + 1; i < chunks.size(); i++) {
 			Chunk c2 = chunks.get(i);
-			assert c != null;
 			if (c.tag != null) {
 				if (c.tag.equals(c2.tag)) {
 					return c2;

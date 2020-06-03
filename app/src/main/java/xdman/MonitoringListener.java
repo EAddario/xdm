@@ -1,5 +1,5 @@
 package xdman;
 
 public interface MonitoringListener {
-	void configChanged();
+	public void configChanged();
 }

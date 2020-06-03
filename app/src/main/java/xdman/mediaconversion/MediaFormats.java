@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 
 import xdman.util.StringUtils;
@@ -22,7 +21,7 @@ public class MediaFormats {
 			if (inStream == null) {
 				inStream = new FileInputStream("formats/list.txt");
 			}
-			InputStreamReader r = new InputStreamReader(inStream, StandardCharsets.UTF_8);
+			InputStreamReader r = new InputStreamReader(inStream, Charset.forName("utf-8"));
 			br = new BufferedReader(r, 1024);
 			while (true) {
 				String ln = br.readLine();
@@ -97,11 +96,11 @@ public class MediaFormats {
 
 	}
 
-	public static MediaFormat[] getSupportedFormats() {
+	public static final MediaFormat[] getSupportedFormats() {
 		return supportedFormats;
 	}
 
-	public static void setSupportedFormats(MediaFormat[] supportedFmts) {
+	public static final void setSupportedFormats(MediaFormat[] supportedFmts) {
 		supportedFormats = supportedFmts;
 	}
 

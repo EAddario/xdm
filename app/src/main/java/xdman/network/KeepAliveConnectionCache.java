@@ -5,12 +5,12 @@ import java.net.Socket;
 import java.util.ArrayList;
 
 public class KeepAliveConnectionCache implements Runnable {
-	private final ArrayList<KeepAliveInfo> socketList;
+	private ArrayList<KeepAliveInfo> socketList;
 	private boolean stop;
 	private final int MAX_KEEP_ALIVE_INT = 2000;
 	private Thread t;
 	private static KeepAliveConnectionCache _this;
-	private static final Object lock = new Object();
+	private static Object lock = new Object();
 
 	public static KeepAliveConnectionCache getInstance() {
 		synchronized (lock) {
@@ -23,7 +23,7 @@ public class KeepAliveConnectionCache implements Runnable {
 	}
 
 	private KeepAliveConnectionCache() {
-		this.socketList = new ArrayList<>();
+		this.socketList = new ArrayList<KeepAliveInfo>();
 	}
 
 	public synchronized void putSocket(Socket socket, String host, int port) {
@@ -51,7 +51,7 @@ public class KeepAliveConnectionCache implements Runnable {
 
 	private void scavengeCache() {
 
-		ArrayList<Socket> sockets2Close = new ArrayList<>();
+		ArrayList<Socket> sockets2Close = new ArrayList<Socket>();
 
 		synchronized (_this) {
 			for (int i = 0; i < socketList.size(); i++) {

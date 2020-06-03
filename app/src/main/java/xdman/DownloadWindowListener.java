@@ -1,7 +1,7 @@
 package xdman;
 
 public interface DownloadWindowListener {
-	void pauseDownload(String id);
+	public void pauseDownload(String id);
 
-	void hidePrgWnd(String id);
+	public void hidePrgWnd(String id);
 }

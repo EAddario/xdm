@@ -12,8 +12,9 @@ import xdman.network.SocketFactory;
 import xdman.util.*;
 
 public class XDMHttpClient extends HttpClient {
-	private final ParsedURL _url;
+	private ParsedURL _url;
 	private Socket socket;
+	private String statusLine;
 	private long length;
 	private FixedRangeInputStream in;
 	private boolean keepAliveSupported;
@@ -28,7 +29,7 @@ public class XDMHttpClient extends HttpClient {
 	public boolean isFinished() {
 		try {
 			return (in.isStreamFinished() && keepAliveSupported);
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 		return false;
 	}
@@ -43,12 +44,12 @@ public class XDMHttpClient extends HttpClient {
 				releaseSocket();
 				return;
 			}
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 
 		}
 		try {
 			this.socket.close();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 
 		}
 	}
@@ -86,7 +87,7 @@ public class XDMHttpClient extends HttpClient {
 
 			sockOut.write(StringUtils.getBytes(reqBuf));
 			sockOut.flush();
-			String statusLine = NetUtils.readLine(sockIn);
+			statusLine = NetUtils.readLine(sockIn);
 
 			String[] arr = statusLine.split(" ");
 			this.statusCode = Integer.parseInt(arr[1].trim());

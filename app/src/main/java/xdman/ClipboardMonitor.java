@@ -71,9 +71,8 @@ public class ClipboardMonitor implements Runnable {
 
 						String[] arr = Config.getInstance().getFileExts();
 						boolean found = false;
-						for (String s : arr) {
-							assert ext != null;
-							if (s.contains(ext)) {
+						for (int i = 0; i < arr.length; i++) {
+							if (arr[i].contains(ext)) {
 								found = true;
 								break;
 							}
@@ -81,7 +80,7 @@ public class ClipboardMonitor implements Runnable {
 						if (found) {
 							XDMApp.getInstance().addDownload(md, file);
 						}
-					} catch (Exception ignored) {
+					} catch (Exception e) {
 					}
 
 				}

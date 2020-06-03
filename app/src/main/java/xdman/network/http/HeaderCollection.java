@@ -6,14 +6,15 @@ import java.io.*;
 import xdman.util.NetUtils;
 
 public class HeaderCollection {
-	private final List<HttpHeader> headers;
+	private List<HttpHeader> headers;
 
 	public HeaderCollection() {
 		headers = new ArrayList<HttpHeader>();
 	}
 
 	public String getValue(String name) {
-		for (HttpHeader header : headers) {
+		for (int i = 0; i < headers.size(); i++) {
+			HttpHeader header = headers.get(i);
 			if (header.getName().equalsIgnoreCase(name)) {
 				return header.getValue();
 			}
@@ -22,7 +23,8 @@ public class HeaderCollection {
 	}
 
 	public boolean containsHeader(String name) {
-		for (HttpHeader header : headers) {
+		for (int i = 0; i < headers.size(); i++) {
+			HttpHeader header = headers.get(i);
 			if (header.getName().equalsIgnoreCase(name)) {
 				return true;
 			}
@@ -31,8 +33,9 @@ public class HeaderCollection {
 	}
 
 	public Iterator<HttpHeader> getHeaders(String name) {
-		List<HttpHeader> list = new ArrayList<>();
-		for (HttpHeader header : headers) {
+		List<HttpHeader> list = new ArrayList<HttpHeader>();
+		for (int i = 0; i < headers.size(); i++) {
+			HttpHeader header = headers.get(i);
 			if (header.getName().equalsIgnoreCase(name)) {
 				list.add(header);
 			}
@@ -56,7 +59,8 @@ public class HeaderCollection {
 
 	public void setValue(String name, String value) {
 		boolean found = false;
-		for (HttpHeader header : headers) {
+		for (int i = 0; i < headers.size(); i++) {
+			HttpHeader header = headers.get(i);
 			if (header.getName().equalsIgnoreCase(name)) {
 				header.setValue(value);
 				found = true;
@@ -76,7 +80,8 @@ public class HeaderCollection {
 	}
 
 	public void appendToBuffer(StringBuffer buf) {
-		for (HttpHeader header : headers) {
+		for (int i = 0; i < headers.size(); i++) {
+			HttpHeader header = headers.get(i);
 			buf.append(header.getName() + ": " + header.getValue() + "\r\n");
 		}
 	}

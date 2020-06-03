@@ -10,7 +10,6 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.UUID;
 
 import xdman.Config;
@@ -35,8 +34,8 @@ import xdman.util.StringUtils;
 import xdman.util.XDMUtils;
 
 public class HdsDownloader extends Downloader implements SegmentListener, MediaConversionListener {
-	private final HdsMetadata metadata;
-	private final ArrayList<String> urlList;
+	private HdsMetadata metadata;
+	private ArrayList<String> urlList;
 	private Segment manifestSegment;
 	private long totalAssembled;
 	private String newFileName;
@@ -54,8 +53,8 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 		this.length = -1;
 		this.metadata = metadata;
 		this.MAX_COUNT = Config.getInstance().getMaxSegments();
-		urlList = new ArrayList<>();
-		chunks = new ArrayList<>();
+		urlList = new ArrayList<String>();
+		chunks = new ArrayList<Segment>();
 		this.eta = "---";
 	}
 
@@ -220,16 +219,16 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 			String newExtension = null;
 
 			if (chunks.size() < 1) {
-				for (String s : urlList) {
+				for (int i = 0; i < urlList.size(); i++) {
 					if (newExtension == null && outputFormat == 0) {
-						newExtension = findExtension(s);
+						newExtension = findExtension(urlList.get(i));
 						Logger.log("HDS: found new extension: " + newExtension);
 						if (newExtension != null) {
 							this.newFileName = getOutputFileName(false).replace(".flv", newExtension);
 
 						} else {
 							newExtension = ".flv";// just to skip the whole file
-							// ext extraction
+													// ext extraction
 						}
 					}
 
@@ -279,7 +278,8 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 				int processedSegments = 0;
 				int partPrg = 0;
 				downloadSpeed = 0;
-				for (Segment s : chunks) {
+				for (int i = 0; i < chunks.size(); i++) {
+					Segment s = chunks.get(i);
 					downloaded2 += s.getDownloaded();
 					downloadSpeed += s.getTransferRate();
 					if (s.isFinished()) {
@@ -333,8 +333,8 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 	public void stop() {
 		stopFlag = true;
 		saveState();
-		for (Segment chunk : chunks) {
-			chunk.stop();
+		for (int i = 0; i < chunks.size(); i++) {
+			chunks.get(i).stop();
 		}
 		if (this.ffmpeg != null) {
 			this.ffmpeg.stop();
@@ -368,6 +368,7 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 			Logger.log(e);
 			this.errorCode = XDMConstants.RESUME_FAILED;
 			listener.downloadFailed(this.id);
+			return;
 		}
 	}
 
@@ -399,11 +400,13 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 		sb.append(downloaded + "\n");
 		sb.append(((long) this.totalDuration) + "\n");
 		sb.append(urlList.size() + "\n");
-		for (String url : urlList) {
+		for (int i = 0; i < urlList.size(); i++) {
+			String url = urlList.get(i);
 			sb.append(url + "\n");
 		}
 		sb.append(chunks.size() + "\n");
-		for (Segment seg : chunks) {
+		for (int i = 0; i < chunks.size(); i++) {
+			Segment seg = chunks.get(i);
 			sb.append(seg.getId() + "\n");
 			if (seg.isFinished()) {
 				sb.append(seg.getLength() + "\n");
@@ -472,7 +475,7 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 			if (br != null) {
 				try {
 					br.close();
-				} catch (IOException ignored) {
+				} catch (IOException e) {
 				}
 			}
 		}
@@ -480,22 +483,26 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 	}
 
 	private void assembleAsync() {
-		new Thread(() -> {
-			finished = true;
-			try {
-				assemble();
-				if (!assembleFinished) {
-					throw new IOException("Assemble not finished successfully");
-				}
-				Logger.log("********Download finished*********");
-				updateStatus();
-				cleanup();
-				listener.downloadFinished(id);
-			} catch (Exception e) {
-				if (!stopFlag) {
-					Logger.log(e);
-					errorCode = XDMConstants.ERR_ASM_FAILED;
-					listener.downloadFailed(id);
+		new Thread(new Runnable() {
+
+			@Override
+			public void run() {
+				finished = true;
+				try {
+					assemble();
+					if (!assembleFinished) {
+						throw new IOException("Assemble not finished successfully");
+					}
+					Logger.log("********Download finished*********");
+					updateStatus();
+					cleanup();
+					listener.downloadFinished(id);
+				} catch (Exception e) {
+					if (!stopFlag) {
+						Logger.log(e);
+						errorCode = XDMConstants.ERR_ASM_FAILED;
+						listener.downloadFailed(id);
+					}
 				}
 			}
 		}).start();
@@ -598,7 +605,7 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 				this.converting = true;
 				ffOutFile = new File(getOutputFolder(), UUID.randomUUID() + "_" + getOutputFileName(true));
 
-				this.ffmpeg = new FFmpeg(Collections.singletonList(outFile.getAbsolutePath()),
+				this.ffmpeg = new FFmpeg(Arrays.asList(new String[] { outFile.getAbsolutePath() }),
 						ffOutFile.getAbsolutePath(), this, MediaFormats.getSupportedFormats()[outputFormat],
 						outputFormat == 0);
 				int ret = ffmpeg.convert();
@@ -632,14 +639,12 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 			Logger.log(e);
 		} finally {
 			try {
-				assert out != null;
 				out.close();
-			} catch (Exception ignored) {
+			} catch (Exception e2) {
 			}
 			try {
-				assert in != null;
 				in.close();
-			} catch (Exception ignored) {
+			} catch (Exception e2) {
 			}
 
 			if (!assembleFinished) {
@@ -670,14 +675,16 @@ public class HdsDownloader extends Downloader implements SegmentListener, MediaC
 		}
 		long iValLo = (long) ((bytesData[3] & 0xff) + ((long) (bytesData[2] & 0xff) * 256));
 		long iValHi = (long) ((bytesData[1] & 0xff) + ((long) (bytesData[0] & 0xff) * 256));
-		return iValLo + (iValHi * 65536);
+		long iVal = iValLo + (iValHi * 65536);
+		return iVal;
 	}
 
 	private long readInt64(InputStream s) throws IOException {
 		long iValHi = readInt32(s);
 		long iValLo = readInt32(s);
 
-		return iValLo + (iValHi * 4294967296L);
+		long iVal = iValLo + (iValHi * 4294967296L);
+		return iVal;
 	}
 
 	private String readStringBytes(InputStream s, long len) throws IOException {

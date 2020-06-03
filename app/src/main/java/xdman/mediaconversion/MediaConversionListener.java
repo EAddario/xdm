@@ -1,5 +1,5 @@
 package xdman.mediaconversion;
 
 public interface MediaConversionListener {
-	void progress(int progress);
+	public void progress(int progress);
 }

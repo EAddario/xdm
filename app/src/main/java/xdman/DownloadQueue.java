@@ -39,10 +39,13 @@ public class DownloadQueue {
 	public void stop() {
 		running = false;
 		XDMApp app = XDMApp.getInstance();
-		for (String id : queuedItems) {
+		for (int i = 0; i < queuedItems.size(); i++) {
+			String id = queuedItems.get(i);
 			DownloadEntry ent = app.getEntry(id);
 			int state = ent.getState();
-			if (state != XDMConstants.FAILED && state != XDMConstants.FINISHED && state != XDMConstants.PAUSED) {
+			if (state == XDMConstants.FAILED || state == XDMConstants.FINISHED || state == XDMConstants.PAUSED) {
+				continue;
+			} else {
 				app.pauseDownload(id);
 			}
 		}
@@ -74,7 +77,7 @@ public class DownloadQueue {
 		if (!(index < queuedItems.size())) {
 			index = 0;
 		}
-		while (index < queuedItems.size()) {
+		for (; index < queuedItems.size();) {
 			String id = queuedItems.get(index);
 			DownloadEntry ent = app.getEntry(id);
 			if (ent != null) {
@@ -197,7 +200,10 @@ public class DownloadQueue {
 	}
 
 	public final synchronized void reorderItems(ArrayList<String> newOrder) {
-		ArrayList<String> newList = new ArrayList<>(newOrder);
+		ArrayList<String> newList = new ArrayList<>();
+		for (String s : newOrder) {
+			newList.add(s);
+		}
 		for (String id : this.queuedItems) {
 			if (!newList.contains(id)) {
 				newList.add(id);

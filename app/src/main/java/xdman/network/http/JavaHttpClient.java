@@ -17,7 +17,7 @@ public class JavaHttpClient extends HttpClient {
 		this.responseHeaders = new HeaderCollection();
 	}
 
-	private final String _url;
+	private String _url;
 	private URL realURL;
 
 	public void connect() throws IOException {
@@ -47,11 +47,15 @@ public class JavaHttpClient extends HttpClient {
 
 		Map<String, List<String>> responseHeaderMap = hc.getHeaderFields();
 
-		for (String key : responseHeaderMap.keySet()) {
+		Iterator<String> headerIterator = responseHeaderMap.keySet().iterator();
+		while (headerIterator.hasNext()) {
+			String key = headerIterator.next();
 			if (key == null)
 				continue;
 			List<String> headerValues = responseHeaderMap.get(key);
-			for (String value : headerValues) {
+			Iterator<String> headerValueIterator = headerValues.iterator();
+			while (headerValueIterator.hasNext()) {
+				String value = headerValueIterator.next();
 				HttpHeader header = new HttpHeader(key, value);
 				this.responseHeaders.addHeader(header);
 			}

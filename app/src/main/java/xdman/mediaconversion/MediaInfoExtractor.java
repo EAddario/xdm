@@ -1,7 +1,6 @@
 package xdman.mediaconversion;
 
 import java.io.File;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,7 @@ public class MediaInfoExtractor {
 		if (proc != null) {
 			try {
 				proc.destroy();
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 			}
 		}
 	}
@@ -56,7 +55,7 @@ public class MediaInfoExtractor {
 		}
 		if(stop)return null;
 		try {
-			List<String> args = new ArrayList<>();
+			List<String> args = new ArrayList<String>();
 			args.add(ffFile.getAbsolutePath());
 			args.add("-i");
 			args.add(f.getAbsolutePath());
@@ -69,9 +68,9 @@ public class MediaInfoExtractor {
 			args.add(tmpImgFile.getAbsolutePath());
 			args.add("-y");
 			
-			StringBuilder str2= new StringBuilder();
+			String str2="";
 			for(String s:args) {
-				str2.append(" ").append(s);
+				str2+=" "+s;
 			}
 			
 			System.out.println(str2);
@@ -89,7 +88,7 @@ public class MediaInfoExtractor {
 			MediaFormatInfo info = new MediaFormatInfo();
 			info.thumbnail = new ImageIcon(tmpImgFile.getAbsolutePath());
 			byte[] array = Files.readAllBytes(tmpOutput.toPath());
-			String str = new String(array, StandardCharsets.UTF_8);
+			String str = new String(array, "utf-8");
 			System.out.println(str);
 			Matcher matcher1 = pattern1.matcher(str);
 			Matcher matcher2 = pattern2.matcher(str);

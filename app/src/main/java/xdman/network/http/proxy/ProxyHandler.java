@@ -2,13 +2,13 @@ package xdman.network.http.proxy;
 
 import java.net.URL;
 
-public interface ProxyHandler {
-	boolean isSupported(int paramInt);
+public abstract interface ProxyHandler {
+	public abstract boolean isSupported(int paramInt);
 
-	boolean isProxyCacheSupported();
+	public abstract boolean isProxyCacheSupported();
 
-	void init(BrowserProxyInfo paramBrowserProxyInfo)
+	public abstract void init(BrowserProxyInfo paramBrowserProxyInfo)
 			throws Exception;
 
-	ProxyInfo[] getProxyInfo(URL paramURL) throws Exception;
+	public abstract ProxyInfo[] getProxyInfo(URL paramURL) throws Exception;
 }

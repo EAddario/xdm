@@ -9,7 +9,6 @@ import java.io.UnsupportedEncodingException;
 import java.net.Socket;
 import java.net.URL;
 import java.net.URLDecoder;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -37,11 +36,11 @@ public class MonitoringSession implements Runnable {
 	// private String msg204 = "HTTP/1.1 204 No Content\r\n" + "Content-length:
 	// 0\r\n\r\n";
 
-	private final Socket sock;
+	private Socket sock;
 	private InputStream inStream;
 	private OutputStream outStream;
-	private final Request request;
-	private final Response response;
+	private Request request;
+	private Response response;
 
 	public MonitoringSession(Socket socket) {
 		this.sock = socket;
@@ -86,9 +85,9 @@ public class MonitoringSession implements Runnable {
 
 	private void onVideoRetrieve(Request request, Response res) throws UnsupportedEncodingException {
 		try {
-			String content = new String(request.getBody(), StandardCharsets.UTF_8);
+			String content = new String(request.getBody(), "utf-8");
 			Logger.log("Video retrieve: " + content);
-			String[] lines = content.split("\r\n");
+			String lines[] = content.split("\r\n");
 			for (String line : lines) {
 				String id = line.trim();
 				for (VideoPopupItem item : XDMApp.getInstance().getVideoItemsList()) {
@@ -173,7 +172,8 @@ public class MonitoringSession implements Runnable {
 			String url = null;
 			String output = null;
 
-			for (String str : arr) {
+			for (int i = 0; i < arr.length; i++) {
+				String str = arr[i];
 				int index = str.indexOf(":");
 				if (index < 1)
 					continue;
@@ -191,7 +191,7 @@ public class MonitoringSession implements Runnable {
 			}
 
 			if (url != null) {
-				HttpMetadata metadata = new HttpMetadata();
+				var metadata = new HttpMetadata();
 				metadata.setUrl(url);
 
 				String file;
@@ -229,13 +229,13 @@ public class MonitoringSession implements Runnable {
 	private void appendArray(String[] arr, StringBuffer buf) {
 		boolean insertComma = false;
 		if (arr != null && arr.length > 0) {
-			for (String s : arr) {
+			for (int i = 0; i < arr.length; i++) {
 				if (insertComma) {
 					buf.append(",");
 				} else {
 					insertComma = true;
 				}
-				buf.append("\"").append(s).append("\"");
+				buf.append("\"" + arr[i] + "\"");
 			}
 		}
 	}
@@ -329,7 +329,7 @@ public class MonitoringSession implements Runnable {
 				outStream.write(resp.getBytes());
 				outStream.flush();
 				ps = new PreviewStream(id, type, tag);
-				byte[] buf = new byte[8192];
+				byte buf[] = new byte[8192];
 				while (true) {
 					int x = ps.read(buf);
 					if (x == -1) {
@@ -370,6 +370,7 @@ public class MonitoringSession implements Runnable {
 				headers.addHeader("Expires", "0");
 				response.setHeaders(headers);
 				response.setBody(b);
+				return;
 			} else if (url.startsWith("/preview/media")) {
 				boolean dash = false;
 				boolean hls = false;
@@ -420,7 +421,6 @@ public class MonitoringSession implements Runnable {
 				} else if (hls) {
 					input1 = "http://127.0.0.1:9614/preview/video/" + XDMConstants.HLS + "/" + metadata.getId();
 				} else {
-					assert metadata != null;
 					input1 = "http://127.0.0.1:9614/preview/video/" + XDMConstants.HTTP + "/" + metadata.getId();
 				}
 				// String input = "http://127.0.0.1:9614/preview/video/" + (hls ?
@@ -432,7 +432,7 @@ public class MonitoringSession implements Runnable {
 				outStream.write(resp.getBytes());
 				outStream.flush();
 				ff = new FFmpegStream(input1, input2);
-				byte[] buf = new byte[8192];
+				byte buf[] = new byte[8192];
 				while (true) {
 					int x = ff.read(buf);
 					if (x == -1) {
@@ -464,14 +464,14 @@ public class MonitoringSession implements Runnable {
 			if (ps != null) {
 				try {
 					ps.close();
-				} catch (Exception ignored) {
+				} catch (Exception e) {
 				}
 			}
 			if (ff != null) {
 				try {
 					System.out.println("Closing FFStream");
 					ff.close();
-				} catch (Exception ignored) {
+				} catch (Exception e) {
 				}
 			}
 		}
@@ -497,17 +497,17 @@ public class MonitoringSession implements Runnable {
 	private void cleanup() {
 		try {
 			inStream.close();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 
 		try {
 			outStream.close();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 
 		try {
 			sock.close();
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		}
 	}
 
@@ -533,7 +533,7 @@ public class MonitoringSession implements Runnable {
 				return false;
 			}
 			String low_path = data.getUrl().toLowerCase();
-			if (low_path.contains("videoplayback") && low_path.contains("itag")) {
+			if (low_path.indexOf("videoplayback") >= 0 && low_path.indexOf("itag") >= 0) {
 				// found DASH audio/video stream
 				if (StringUtils.isNullOrEmptyOrBlank(url.getQuery())) {
 					return false;
@@ -544,7 +544,7 @@ public class MonitoringSession implements Runnable {
 				String path = data.getUrl().substring(0, index);
 				String query = data.getUrl().substring(index + 1);
 
-				String[] arr = query.split("&");
+				String arr[] = query.split("&");
 				StringBuilder yt_url = new StringBuilder();
 				yt_url.append(path + "?");
 				int itag = 0;
@@ -568,7 +568,7 @@ public class MonitoringSession implements Runnable {
 							clen = Long.parseLong(val);
 						}
 						if (key.startsWith("mime")) {
-							mime = URLDecoder.decode(val, StandardCharsets.UTF_8);
+							mime = URLDecoder.decode(val, "UTF-8");
 						}
 						if (str.startsWith("id")) {
 							id = val;
@@ -683,7 +683,7 @@ public class MonitoringSession implements Runnable {
 				manifestfile = downloadMenifest(data);
 				return InstagramHandler.handle(manifestfile, data);
 			}
-		} catch (Exception ignored) {
+		} catch (Exception e) {
 		} finally {
 			if (manifestfile != null) {
 				manifestfile.delete();
@@ -753,7 +753,7 @@ public class MonitoringSession implements Runnable {
 			client = new JavaHttpClient(data.getUrl());
 			Iterator<HttpHeader> headers = data.getRequestHeaders().getAll();
 			boolean hasAccept = false;
-			List<String> cookieList = new ArrayList<>();
+			List<String> cookieList = new ArrayList<String>();
 			while (headers.hasNext()) {
 				HttpHeader header = headers.next();
 				//System.err.println(header.getName() + " " + header.getValue());
@@ -790,13 +790,12 @@ public class MonitoringSession implements Runnable {
 			Logger.log(e);
 		} finally {
 			try {
-				assert out != null;
 				out.close();
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 			}
 			try {
 				client.dispose();
-			} catch (Exception ignored) {
+			} catch (Exception e) {
 			}
 		}
 		return null;
